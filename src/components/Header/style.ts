@@ -30,6 +30,6 @@ export const SearchInput = styled.input`
 
   &:focus {
     outline: none;
-    border-color: #0033ff;
+    border-color: #042AE9;
   }
 `;

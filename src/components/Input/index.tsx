@@ -9,12 +9,17 @@ import {
 import { Eye, EyeOff } from 'lucide-react';
 
 // interface para as props do componente
-interface InputProps {
+interface InputProps{
   label: string;
+  initialValue?: string;
   placeholder?: string;
   type?: 'text' | 'password' | 'cpf' | 'date';
   name?: string;
   onChange?: (name: string, value: string) => void;
+  disabled?: boolean;
+  readOnly?: boolean;
+  autoComplete?: string;
+  id?: string;
 }
 
 
@@ -36,9 +41,9 @@ const maskDate = (value: string) => {
 
 
 
-const Input = ({ label, placeholder, type = 'text', name, onChange }: InputProps) => {
+const Input = ({ label, placeholder, type = 'text', name, onChange, initialValue, disabled, readOnly }: InputProps) => {
   const [visible, setVisible] = useState(false);
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(initialValue || '');
   const isPassword = type === 'password';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,6 +77,8 @@ const Input = ({ label, placeholder, type = 'text', name, onChange }: InputProps
           value={value}
           onChange={handleChange}
           autoComplete="off"
+          disabled={disabled}
+          readOnly={readOnly}
         />
         {isPassword && (
           <ToggleVisibility onClick={() => setVisible(!visible)}>

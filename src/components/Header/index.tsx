@@ -1,6 +1,7 @@
 import React from 'react';
 import { Menu, User } from 'lucide-react';
 import { Container, IconWrapper, SearchInput } from './style';
+import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
   return (
@@ -9,9 +10,11 @@ const Header: React.FC = () => {
         <Menu size={30} color="#5f6368" />
       </IconWrapper>
       <SearchInput type="text" placeholder="Buscar tarefas" />
-      <IconWrapper>
-        <User size={30} color="#5f6368" />
-      </IconWrapper>
+      <Link to="/account" style={{ textDecoration: 'none' }}>
+        <IconWrapper>
+          <User size={30} color="#5f6368" />
+        </IconWrapper>
+      </Link>
     </Container>
   );
 };
