@@ -8,13 +8,17 @@ import {
 } from './style';
 import { Eye, EyeOff } from 'lucide-react';
 
+// interface para as props do componente
 interface InputProps {
   label: string;
   placeholder?: string;
   type?: 'text' | 'password' | 'cpf' | 'date';
   name?: string;
+  onChange?: (name: string, value: string) => void;
 }
 
+
+// mascaras do cpf e data de aniversário
 const maskCPF = (value: string) => {
   return value
     .replace(/\D/g, '')
@@ -30,23 +34,29 @@ const maskDate = (value: string) => {
     .replace(/(\d{2})(\d{1,4})$/, '$1/$2');
 };
 
-const Input = ({ label, placeholder, type = 'text', name }: InputProps) => {
+
+
+const Input = ({ label, placeholder, type = 'text', name, onChange }: InputProps) => {
   const [visible, setVisible] = useState(false);
   const [value, setValue] = useState('');
-
   const isPassword = type === 'password';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let rawValue = e.target.value.replace(/\D/g, '');
+    const inputName = e.target.name;
+    let valueToUpdate = e.target.value;
 
+    // aplica as mascaras de cpf e data de aniversário
     if (type === 'cpf') {
-      rawValue = rawValue.slice(0, 11);
-      setValue(maskCPF(rawValue));
+      const rawValue = valueToUpdate.replace(/\D/g, '').slice(0, 11);
+      valueToUpdate = maskCPF(rawValue);
     } else if (type === 'date') {
-      rawValue = rawValue.slice(0, 8);
-      setValue(maskDate(rawValue));
-    } else {
-      setValue(e.target.value);
+      const rawValue = valueToUpdate.replace(/\D/g, '').slice(0, 8);
+      valueToUpdate = maskDate(rawValue);
+    }
+       setValue(valueToUpdate);
+
+   if (onChange && inputName) {
+      onChange(inputName, valueToUpdate);
     }
   };
 

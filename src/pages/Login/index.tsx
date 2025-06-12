@@ -21,7 +21,7 @@ const Login = () => {
           type="password"
           placeholder="Digite sua senha"
         />
-        <FilledButton label="Login" icon={<LogIn size={18} />} />
+        <Link to="/home"><FilledButton label="Login" icon={<LogIn size={18} />} /></Link>
         <RegisterText>
           Não possui conta? <Link to="/register">Cadastre-se aqui!</Link>
         </RegisterText>
