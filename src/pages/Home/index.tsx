@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import Header from '../../components/Header';
 import TaskCard from '../../components/TaskCard';
 import FloatingButton from '../../components/FloatingButton';
+import AddTaskModal from '../../components/AddTaskModal';
 import { Container, TaskList } from './style';
 
 type Task = {
@@ -52,7 +53,10 @@ const getTaskStatus = (task: Task): TaskStatus => {
 
 const Home: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
 
+
+  // botao de concluir tarefa
   const handleToggleTask = (taskId: number) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) => {
@@ -65,6 +69,21 @@ const Home: React.FC = () => {
         return task;
       })
     );
+  };
+
+  //adicionar nova tarefa
+  const handleAddTask = (newTaskData: { title: string; description: string; dueDate: string }) => {
+    const newTask: Task = {
+      id: Date.now(),
+      title: newTaskData.title,
+      description: newTaskData.description,
+      dueDate: new Date(new Date(newTaskData.dueDate).setDate(new Date(newTaskData.dueDate).getDate() + 1)),
+      completedAt: null,
+    };
+    
+    // Adiciona a nova tarefa no topo da lista
+    setTasks(prevTasks => [newTask, ...prevTasks]);
+    setIsAddTaskModalOpen(false); // Fecha o modal
   };
 
   const formatDate = (date: Date) =>
@@ -97,7 +116,13 @@ const Home: React.FC = () => {
           />
         ))}
       </TaskList>
-      <FloatingButton />
+      <FloatingButton onClick={() => setIsAddTaskModalOpen(true)}/>
+      {isAddTaskModalOpen && (
+        <AddTaskModal 
+          onClose={() => setIsAddTaskModalOpen(false)}
+          onAddTask={handleAddTask}
+        />
+      )}
     </Container>
   );
 };

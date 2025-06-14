@@ -2,12 +2,17 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from './style';
 
-const FloatingButton: React.FC = () => {
+interface FloatingButtonProps {
+  onClick: () => void;
+}
+
+const FloatingButton: React.FC<FloatingButtonProps> = ({ onClick }) => {
   return (
-    <Button>
+    <Button onClick={onClick}>
       <Plus size={28} color="white" />
     </Button>
   );
 };
+
 
 export default FloatingButton;
