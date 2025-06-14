@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { data, useNavigate } from 'react-router-dom';
 import {
   ChevronLeft,
   UserCircle2,
   Edit3,
   LogOut,
   Trash2,
+  Check,
+  X,
 } from 'lucide-react';
 import ActionItem from '../../components/ActionItem';
 import AlertBox from '../../components/AlertBox';
@@ -30,16 +32,33 @@ const mockUser = {
   name: 'Nome Pessoa',
   cpf: '000.000.00-00',
   email: 'email@pessoa.com',
+  dataNascimento: '01/01/2000',
 };
 
 const Account: React.FC = () => {
   const navigate = useNavigate();
 
+  const [user, setUser] = useState(mockUser);
+  const [formData, setFormData] = useState(mockUser);
   const [isEditing, setIsEditing] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-  const handleEnterEditMode = () => setIsEditing(true);
+  const handleEnterEditMode = () => {
+    setFormData(user);
+    setIsEditing(true);
+  };
   const handleExitEditMode = () => setIsEditing(false);
+
+  const handleFormChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleConfirmEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setUser(formData);
+    setIsEditing(false);
+  };
+
 
   const handleOpenDeleteAlert = () => {
     setIsAlertOpen(true);
@@ -72,30 +91,37 @@ const Account: React.FC = () => {
           <UserCircle2 size={96} strokeWidth={1} />
         </Avatar>
  {isEditing ? (
-          <Form>
+          <Form onSubmit={handleConfirmEdit}>
             <Input
               label="Nome"
               name="name"
               type="text"
-              value={mockUser.name}
-              readOnly 
+              value={formData.name}
+              onChange={handleFormChange}
             />
             <Input
               label="CPF"
               name="cpf"
               type="text"
-              value={mockUser.cpf}
-              disabled 
+              value={formData.cpf}
+              disabled
             />
             <Input
               label="Email"
               name="email"
               type="text"
-              value={mockUser.email}
-              readOnly
+              value={formData.email}
+              onChange={handleFormChange}
+            />
+            <Input
+              label="Data de Nascimento"
+              name="dataNascimento"
+              type="date"
+              value={formData.dataNascimento}
+              onChange={handleFormChange}
             />
             <ButtonContainer>
-              <ConfirmButton type="button" onClick={handleExitEditMode}>
+              <ConfirmButton type="submit">
                 <Check size={20} />
                 Confirmar
               </ConfirmButton>
@@ -107,9 +133,9 @@ const Account: React.FC = () => {
           </Form>
         ) : (
           <>
-            <UserName>{mockUser.name}</UserName>
-            <UserInfo>{mockUser.cpf}</UserInfo>
-            <UserInfo>{mockUser.email}</UserInfo>
+            <UserName>{user.name}</UserName>
+            <UserInfo>{user.cpf}</UserInfo>
+            <UserInfo>{user.email}</UserInfo>
 
             <ActionsContainer>
               <ActionItem

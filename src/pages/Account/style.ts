@@ -59,7 +59,7 @@ export const Form = styled.form`
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1rem; /* Espaço entre os inputs */
+  gap: 1rem;
   margin-top: 2rem;
 `;
 
@@ -67,7 +67,7 @@ export const ButtonContainer = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; /* 12px */
+  gap: 0.75rem;
   margin-top: 1.5rem;
 `;
 
@@ -91,11 +91,11 @@ const ActionButton = styled.button`
 `;
 
 export const ConfirmButton = styled(ActionButton)`
-  background-color: #1a73e8; // Azul
+  background-color: #042AE9;
   color: white;
 `;
 
 export const CancelButton = styled(ActionButton)`
-  background-color: #fce8e6; // Vermelho claro
-  color: #d93025; // Vermelho escuro
+  background-color: #FC9C9C;
+  color: white;
 `;

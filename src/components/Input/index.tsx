@@ -9,17 +9,10 @@ import {
 import { Eye, EyeOff } from 'lucide-react';
 
 // interface para as props do componente
-interface InputProps{
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   label: string;
-  initialValue?: string;
-  placeholder?: string;
   type?: 'text' | 'password' | 'cpf' | 'date';
-  name?: string;
   onChange?: (name: string, value: string) => void;
-  disabled?: boolean;
-  readOnly?: boolean;
-  autoComplete?: string;
-  id?: string;
 }
 
 
@@ -41,9 +34,8 @@ const maskDate = (value: string) => {
 
 
 
-const Input = ({ label, placeholder, type = 'text', name, onChange, initialValue, disabled, readOnly }: InputProps) => {
+const Input = ({ label, placeholder, type = 'text', name, onChange, value, disabled}: InputProps) => {
   const [visible, setVisible] = useState(false);
-  const [value, setValue] = useState(initialValue || '');
   const isPassword = type === 'password';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +50,6 @@ const Input = ({ label, placeholder, type = 'text', name, onChange, initialValue
       const rawValue = valueToUpdate.replace(/\D/g, '').slice(0, 8);
       valueToUpdate = maskDate(rawValue);
     }
-       setValue(valueToUpdate);
 
    if (onChange && inputName) {
       onChange(inputName, valueToUpdate);
@@ -78,7 +69,6 @@ const Input = ({ label, placeholder, type = 'text', name, onChange, initialValue
           onChange={handleChange}
           autoComplete="off"
           disabled={disabled}
-          readOnly={readOnly}
         />
         {isPassword && (
           <ToggleVisibility onClick={() => setVisible(!visible)}>
