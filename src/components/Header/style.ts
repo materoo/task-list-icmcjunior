@@ -21,7 +21,7 @@ export const IconWrapper = styled.button`
 `;
 
 export const SearchInput = styled.input`
-  flex-grow: 1;
+  flex-grow: 0.7;
   margin: 0 1rem;
   padding: 0.75rem 1rem;
   border: 1px solid #dadce0;

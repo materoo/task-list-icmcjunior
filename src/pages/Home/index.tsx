@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import Header from '../../components/Header';
 import TaskCard from '../../components/TaskCard';
 import FloatingButton from '../../components/FloatingButton';
 import AddTaskModal from '../../components/AddTaskModal';
+import Sidebar from '../../components/Sidebar';
 import { Container, TaskList } from './style';
 
 type Task = {
@@ -54,6 +55,8 @@ const getTaskStatus = (task: Task): TaskStatus => {
 const Home: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('all');
 
 
   // botao de concluir tarefa
@@ -81,9 +84,8 @@ const Home: React.FC = () => {
       completedAt: null,
     };
     
-    // Adiciona a nova tarefa no topo da lista
     setTasks(prevTasks => [newTask, ...prevTasks]);
-    setIsAddTaskModalOpen(false); // Fecha o modal
+    setIsAddTaskModalOpen(false);
   };
 
   const formatDate = (date: Date) =>
@@ -99,11 +101,36 @@ const Home: React.FC = () => {
       minute: '2-digit',
     });
 
+
+  //filtro de tarefas
+  const filteredTasks = useMemo(() => {
+    switch (activeFilter) {
+      case 'pending':
+        return tasks.filter(task => getTaskStatus(task) === 'pending');
+      case 'completed':
+        return tasks.filter(task => getTaskStatus(task) === 'completed');
+      case 'overdue':
+        return tasks.filter(task => getTaskStatus(task) === 'overdue');
+      case 'all':
+      default:
+        return tasks;
+    }
+  }, [tasks, activeFilter]); 
+
   return (
     <Container>
-      <Header />
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        activeFilter={activeFilter}
+        onFilterChange={(filter) => {
+          setActiveFilter(filter);
+          setIsSidebarOpen(false);
+        }}
+      />
+      <Header onMenuClick={() => setIsSidebarOpen(true)}/>
       <TaskList>
-        {tasks.map((task) => (
+        {filteredTasks.map((task) => (
           <TaskCard
             key={task.id}
             id={task.id}

@@ -3,10 +3,14 @@ import { Menu, User } from 'lucide-react';
 import { Container, IconWrapper, SearchInput } from './style';
 import { Link } from 'react-router-dom';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onMenuClick?: () => void; 
+}
+
+const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   return (
     <Container>
-      <IconWrapper>
+      <IconWrapper onClick={onMenuClick}>
         <Menu size={30} color="#5f6368" />
       </IconWrapper>
       <SearchInput type="text" placeholder="Buscar tarefas" />
