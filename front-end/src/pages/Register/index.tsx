@@ -3,10 +3,18 @@ import { ArrowLeft, LogIn } from 'lucide-react';
 import Input from '../../components/Input';
 import FilledButton from '../../components/FilledButton';
 import { Container, Title, Back, Form } from './style';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate} from 'react-router-dom';
+import type React from 'react';
+import axios from 'axios';
 
-const Register = () => {
+type RegisterProps = {
+  setUser: React.Dispatch<React.SetStateAction<null>>;
+};
+
+
+const Register = ({ setUser }: RegisterProps) => {
   const navigate = useNavigate();
+  const [redirect, setRedirect] = useState(false);
 
   const [form, setForm] = useState({
     name: '',
@@ -21,7 +29,7 @@ const Register = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const { name, birthdate, cpf, email, password1, password2 } = form;
@@ -68,9 +76,24 @@ const Register = () => {
         return;
     }
 
+    try{
+      const {data : userDoc} = await axios.post("/users",{
+        name,
+        birthdate,
+        cpf,
+        email,
+        password1,
+      });
+
+      setUser(userDoc);
+      setRedirect(true);
+    } catch (error) {
+      alert(`Erro ao cadastrar: ${error}`);
+    }
     console.log('infos do forms:', form);
   };
 
+  if(redirect) return <Navigate to="/" />
   return (
     <Container>
       <Back onClick={() => navigate(-1)}>

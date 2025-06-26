@@ -9,7 +9,7 @@ export const Wrapper = styled.div`
   font-family: 'Poppins', sans-serif;
 `;
 
-export const FormContainer = styled.div`
+export const FormContainer = styled.form`
   width: 100%;
   max-width: 360px;
   display: flex;
