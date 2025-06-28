@@ -5,12 +5,11 @@ import { Link, Navigate } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 import React, { useState } from "react";
 import axios from "axios";
+import { useUser } from '../../contexts/UserContext'; 
 
-type LoginProps = {
-  setUser: React.Dispatch<React.SetStateAction<null>>;
-};
 
-const Login = ({ setUser }: LoginProps) => {
+const Login = () => {
+  const { setUser } = useUser(); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [redirect, setRedirect] = useState(false);
@@ -18,26 +17,27 @@ const Login = ({ setUser }: LoginProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if(email && password){ 
+    if(email && password){
       try{
         const {data : userDoc } = await axios.post("/users/login", {
-        email,
-        password
-      })
-      
-      setUser(userDoc);
-      setRedirect(true);
-      } catch (error) {
-        alert(`Erro ao logar: ${error}`);
+          email,
+          password
+        });
+        
+        setUser(userDoc); 
+        setRedirect(true);
+      } catch (error: any) { 
+        const errorMessage = error.response?.data?.message || error.message || "Erro desconhecido ao logar.";
+        alert(`Erro ao logar: ${errorMessage}`);
       }
-      
+
     }else{
-      alert("Por favor, insira Email e Senha.")
+      alert("Por favor, insira Email e Senha.");
     }
-    console.log(`Email enviado: ${email} Senha Enviada: ${password}`)
+    console.log(`Email enviado: ${email} Senha Enviada: ${password}`);
   };
 
-  if(redirect) return <Navigate to="/home" />
+  if(redirect) return <Navigate to="/home" />; // Redirect to home after successful login
 
   return (
     <Wrapper>
@@ -56,6 +56,7 @@ const Login = ({ setUser }: LoginProps) => {
           name="password"
           type="password"
           placeholder="Digite sua senha"
+          value={password} // Added value prop for controlled component
           onChange={(_, value) => setPassword(value)}
         />
         <FilledButton label="Login" icon={<LogIn size={18}/>} type='submit' />

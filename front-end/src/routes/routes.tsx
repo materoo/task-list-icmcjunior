@@ -1,28 +1,24 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Home from '../pages/Home';
 import Account from '../pages/Account';
-import { useEffect, useState } from "react";
-import axios from 'axios';
+import { useUser } from '../contexts/UserContext'; 
 
 const AppRoutes = () => {
-  const [user, setUser] = useState(null);
+  const { user, loading } = useUser(); 
 
-  useEffect(() => {
-    const axiosGet = async() => {
-      const {data} = await axios.get('/users/account')
-      setUser(data);
-    };
-    axiosGet();
-  }, []);
+  if (loading) {
+    return <div>Carregando rotas...</div>;
+  }
 
   return (
     <Routes>
-      <Route path="/home" element={<Home />} />
-      <Route path="/register" element={<Register setUser={setUser} />} />
-      <Route path="/" element={<Login setUser={setUser} />} />
-      <Route path="/account" element={<Account />} />
+      <Route path="/" element={user ? <Home /> : <Navigate to="/login" replace />} />
+      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
+      <Route path="/account" element={user ? <Account /> : <Navigate to="/login" replace />} />
+      <Route path="*" element={<div>Página não encontrada - Faça login e tente novamente</div>} />
     </Routes>
   );
 };

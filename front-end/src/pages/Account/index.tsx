@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
   ChevronLeft,
   UserCircle2,
@@ -12,6 +13,7 @@ import {
 import ActionItem from '../../components/ActionItem';
 import AlertBox from '../../components/AlertBox';
 import Input from '../../components/Input';
+import { useUser } from '../../contexts/UserContext';
 import {
   Wrapper,
   Header,
@@ -26,25 +28,44 @@ import {
   CancelButton,
 } from './style';
 
-// dados de exemplo até a implementação do backend
-const mockUser = {
-  id: 1,
-  name: 'Nome Pessoa',
-  cpf: '000.000.00-00',
-  email: 'email@pessoa.com',
-  dataNascimento: '01/01/2000',
-};
-
 const Account: React.FC = () => {
   const navigate = useNavigate();
+  const { user, setUser, loading } = useUser();
 
-  const [user, setUser] = useState(mockUser);
-  const [formData, setFormData] = useState(mockUser);
+  const [formData, setFormData] = useState(() => {
+    if (user) {
+      return {
+        ...user,
+        dataNascimento: user.dataNascimento || '',
+      };
+    }
+    return {
+      id: '',
+      name: '',
+      cpf: '',
+      email: '',
+      dataNascimento: '',
+    };
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
 
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        ...user,
+        dataNascimento: user.dataNascimento || '',
+      });
+    }
+  }, [user]);
+
   const handleEnterEditMode = () => {
-    setFormData(user);
+    if (user) {
+      setFormData({
+        ...user,
+        dataNascimento: user.dataNascimento || '',
+      });
+    }
     setIsEditing(true);
   };
   const handleExitEditMode = () => setIsEditing(false);
@@ -53,12 +74,35 @@ const Account: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleConfirmEdit = (e: React.FormEvent) => {
+  const handleConfirmEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUser(formData);
-    setIsEditing(false);
-  };
+    if (!user || !user.id) {
+      console.error("ID do usuário não disponível para atualização.");
+      return;
+    }
 
+    try {
+      // Envia os dados atualizados para o backend
+      const response = await axios.put(`/users/${user.id}`, {
+        name: formData.name,
+        email: formData.email,
+        dataNascimento: formData.dataNascimento,
+      });
+
+      // Atualiza o contexto com os novos dados recebidos do backend
+      setUser({
+        id: response.data._id,
+        name: response.data.name,
+        cpf: response.data.cpf,
+        email: response.data.email,
+        dataNascimento: response.data.birthdate,
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Erro ao atualizar o perfil do usuário:", error);
+      // Você pode adicionar uma mensagem de erro para o usuário aqui
+    }
+  };
 
   const handleOpenDeleteAlert = () => {
     setIsAlertOpen(true);
@@ -68,14 +112,47 @@ const Account: React.FC = () => {
     setIsAlertOpen(false);
   };
 
-  const handleConfirmDeletion = () => {
-    handleCloseDeleteAlert();
-    navigate('/');
+  const handleConfirmDeletion = async () => {
+    if (!user || !user.id) {
+      console.error("ID do usuário não disponível para exclusão.");
+      handleCloseDeleteAlert();
+      return;
+    }
+
+    try {
+      await axios.delete(`/users/${user.id}`);
+      setUser(null);
+      handleCloseDeleteAlert();
+      navigate('/');
+    } catch (error) {
+      console.error("Erro ao deletar a conta:", error);
+    }
   };
 
   const handleLogout = () => {
+    setUser(null);
     navigate('/');
   };
+
+  if (loading) {
+    return <div>Carregando informações do usuário...</div>;
+  }
+
+  if (!user) {
+    return (
+      <Wrapper>
+        <Header>
+          <button onClick={() => navigate(-1)}>
+            <ChevronLeft size={24} />
+            Voltar
+          </button>
+        </Header>
+        <Content>
+          <div>Nenhum usuário logado. Por favor, faça login.</div>
+        </Content>
+      </Wrapper>
+    );
+  }
 
   return (
     <Wrapper>
@@ -90,7 +167,7 @@ const Account: React.FC = () => {
         <Avatar>
           <UserCircle2 size={96} strokeWidth={1} />
         </Avatar>
- {isEditing ? (
+        {isEditing ? (
           <Form onSubmit={handleConfirmEdit}>
             <Input
               label="Nome"
@@ -134,8 +211,9 @@ const Account: React.FC = () => {
         ) : (
           <>
             <UserName>{user.name}</UserName>
-            <UserInfo>{user.cpf}</UserInfo>
-            <UserInfo>{user.email}</UserInfo>
+            <UserInfo>CPF: {user.cpf}</UserInfo>
+            <UserInfo>Email: {user.email}</UserInfo>
+            <UserInfo>Data de Nascimento: {user.dataNascimento}</UserInfo>
 
             <ActionsContainer>
               <ActionItem

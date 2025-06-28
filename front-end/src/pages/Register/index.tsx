@@ -6,14 +6,11 @@ import { Container, Title, Back, Form } from './style';
 import { useNavigate, Navigate} from 'react-router-dom';
 import type React from 'react';
 import axios from 'axios';
+import { useUser } from '../../contexts/UserContext';
 
-type RegisterProps = {
-  setUser: React.Dispatch<React.SetStateAction<null>>;
-};
-
-
-const Register = ({ setUser }: RegisterProps) => {
+const Register = () => {
   const navigate = useNavigate();
+  const { setUser } = useUser();
   const [redirect, setRedirect] = useState(false);
 
   const [form, setForm] = useState({
