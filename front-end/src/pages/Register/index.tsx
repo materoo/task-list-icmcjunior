@@ -3,7 +3,7 @@ import { ArrowLeft, LogIn } from 'lucide-react';
 import Input from '../../components/Input';
 import FilledButton from '../../components/FilledButton';
 import { Container, Title, Back, Form } from './style';
-import { useNavigate, Navigate} from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import type React from 'react';
 import axios from 'axios';
 import { useUser } from '../../contexts/UserContext';
@@ -31,66 +31,68 @@ const Register = () => {
 
     const { name, birthdate, cpf, email, password1, password2 } = form;
 
-
-    //validação de campos preenchidos
     if (!name.trim() || !birthdate.trim() || !cpf.trim() || !email.trim() || !password1.trim() || !password2.trim()) {
       alert('Preencha todos os campos');
       return;
     }
 
-    //validação de senha e confirmação de senha
     if (password1 !== password2) {
       alert('As senhas não coincidem');
       return;
     }
 
-    //validação de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        alert('Formato de email inválido');
-        return;
+      alert('Formato de email inválido');
+      return;
     }
 
-    //validação de CPF
     if (cpf.replace(/\D/g, '').length !== 11) {
       alert('CPF inválido');
       return;
     }
 
-    //validação de data de nascimento
     const validateBirthdate = (dateString: string) => {
-        const [day, month, year] = dateString.split('/').map(Number);
-        if (!day || !month || !year) return { isValid: false, message: 'Formato de data inválido. Use DD/MM/AAAA.' };
-        const birthDate = new Date(year, month - 1, day);
-        if (birthDate.getFullYear() !== year || birthDate.getMonth() !== month - 1 || birthDate.getDate() !== day) return { isValid: false, message: 'Data de nascimento inválida.' };
-        if (birthDate > new Date()) return { isValid: false, message: 'Data de nascimento não pode ser no futuro.' };
-        return { isValid: true, message: '' };
+      const [day, month, year] = dateString.split('/').map(Number);
+      if (!day || !month || !year) return { isValid: false, message: 'Formato de data inválido. Use DD/MM/AAAA.' };
+      const birthDate = new Date(year, month - 1, day);
+      if (birthDate.getFullYear() !== year || birthDate.getMonth() !== month - 1 || birthDate.getDate() !== day) return { isValid: false, message: 'Data de nascimento inválida.' };
+      if (birthDate > new Date()) return { isValid: false, message: 'Data de nascimento não pode ser no futuro.' };
+      return { isValid: true, message: '' };
     };
 
     const birthdateValidation = validateBirthdate(birthdate);
     if (!birthdateValidation.isValid) {
-        alert(birthdateValidation.message);
-        return;
+      alert(birthdateValidation.message);
+      return;
     }
 
-    try{
-      const {data : userDoc} = await axios.post("/users",{
+    try {
+      const { data: userDoc } = await axios.post("/users", {
         name,
         birthdate,
         cpf,
         email,
-        password1,
+        password: password1,
       });
 
-      setUser(userDoc);
+      const mappedUser = {
+        id: userDoc._id || userDoc.id,
+        name: userDoc.name,
+        cpf: userDoc.cpf,
+        email: userDoc.email,
+        dataNascimento: userDoc.birthdate || userDoc.dataNascimento,
+      };
+
+      setUser(mappedUser);
       setRedirect(true);
-    } catch (error) {
-      alert(`Erro ao cadastrar: ${error}`);
+    } catch (error: any) {
+      alert(`Erro ao cadastrar: ${error.response?.data?.message || error.message}`);
+      console.error(error);
     }
-    console.log('infos do forms:', form);
   };
 
-  if(redirect) return <Navigate to="/" />
+  if (redirect) return <Navigate to="/" />;
   return (
     <Container>
       <Back onClick={() => navigate(-1)}>

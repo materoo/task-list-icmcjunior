@@ -40,7 +40,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             name: userData.name,
             cpf: userData.cpf,
             email: userData.email,
-            dataNascimento: userData.birthdate, // Mantenha como 'birthdate' aqui
+            dataNascimento: userData.birthdate, 
           };
           setUser(mappedUser);
         } else {

@@ -90,17 +90,17 @@ const Account: React.FC = () => {
       });
 
       // Atualiza o contexto com os novos dados recebidos do backend
-      setUser({
-        id: response.data._id,
+       const updatedUserData = {
+        ...user, 
+        id: response.data._id || response.data.id || user.id, // Prefer backend ID, fallback to current
         name: response.data.name,
-        cpf: response.data.cpf,
         email: response.data.email,
-        dataNascimento: response.data.birthdate,
-      });
+        dataNascimento: response.data.dataNascimento || response.data.birthdate || formData.dataNascimento,
+      };
+      setUser(updatedUserData)
       setIsEditing(false);
     } catch (error) {
       console.error("Erro ao atualizar o perfil do usuário:", error);
-      // Você pode adicionar uma mensagem de erro para o usuário aqui
     }
   };
 

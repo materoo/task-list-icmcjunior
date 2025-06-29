@@ -1,7 +1,6 @@
-// src/pages/Login/index.tsx
 import React, { useState } from 'react';
-import { LogIn } from 'lucide-react'; // Ícone 'User' removido da importação
-import { Link, Navigate } from 'react-router-dom'; // 'useNavigate' removido da importação
+import { LogIn } from 'lucide-react';
+import { Link, Navigate } from 'react-router-dom';
 
 import Input from '../../components/Input';
 import FilledButton from '../../components/FilledButton';
@@ -12,7 +11,6 @@ import axios from 'axios';
 const Login = () => {
   const { setUser } = useUser();
   const [redirect, setRedirect] = useState(false);
-  // A linha 'const navigate = useNavigate();' foi removida
 
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +28,16 @@ const Login = () => {
         login,
         password
       });
-      setUser(userDoc);
+
+      const mappedUser = {
+        id: userDoc._id || userDoc.id,
+        name: userDoc.name,
+        cpf: userDoc.cpf,
+        email: userDoc.email,
+        dataNascimento: userDoc.birthdate || userDoc.dataNascimento,
+      };
+
+      setUser(mappedUser);
       setRedirect(true);
     } catch (error) {
       alert("Falha no login. Verifique suas credenciais.");
@@ -39,7 +46,7 @@ const Login = () => {
   };
 
   if (redirect) return <Navigate to="/home" />;
-  
+
   return (
     <Wrapper>
       <FormContainer onSubmit={handleSubmit}>
@@ -62,7 +69,7 @@ const Login = () => {
           onChange={(_name, value) => setPassword(value)}
         />
         <FilledButton label="Entrar" icon={<LogIn size={18} />} type="submit" />
-        
+
         <RegisterText>
           Não tem uma conta? <Link to="/register">Cadastre-se</Link>
         </RegisterText>
