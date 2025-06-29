@@ -1,93 +1,99 @@
 import styled, { css } from 'styled-components';
+import type { Status } from '../../@types/tasks';
 
-// as 3 possibilidades de status para a tarefa
-export interface TaskCardContainerProps {
-    status: 'overdue' | 'pending' | 'completed';
+interface TaskCardContainerProps {
+  status: Status;
 }
 
-// pegar a cor baseada no status
-const getStatusStyles = (status: TaskCardContainerProps['status']) => {
-    switch (status) {
-        case 'overdue':
-            return css`
+const getStatusStyles = (status: Status) => {
+  switch (status) {
+    case 'overdue':
+      return css`
         background-color: #FC9C9C;
-        color: #413F42;
       `;
-        case 'completed':
-            return css`
+    case 'completed':
+      // Modificação aqui para restaurar seu estilo original
+      return css`
         background-color: #D5F0E5;
-        color: #413F42;
-        opacity: 0.6;
-        h3, p, span {
-          opacity: 0.5;
+        opacity: 0.7;
+
+        ${Title}, ${Description} {
+          text-decoration: line-through;
+          color: #555;
         }
       `;
-        case 'pending':
-        default:
-            return css`
+    case 'pending':
+    default:
+      return css`
         background-color: #D5F0E5;
-        color: #413F42;
       `;
-    }
+  }
 };
 
 export const Container = styled.div<TaskCardContainerProps>`
-  padding: 1.25rem; /* 20px */
+  padding: 16px;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
-  font-family: 'Poppins', sans-serif;
-  transition: background-color 0.5s ease, color 0.5s ease;
   ${({ status }) => getStatusStyles(status)}
 `;
 
 export const Header = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
+  align-items: center;
+  margin-bottom: 12px;
 `;
 
-export const TimeInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-
-  span:first-child {
-    font-size: 2rem;
-    font-weight: 700;
-  }
-
-  span:last-child {
-    font-size: 0.9rem;
-    font-weight: 700;
-  }
+export const TimeInfo = styled.span`
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
 `;
 
-export const CheckboxWrapper = styled.div`
-  width: 28px;
-  height: 28px;
-  border: 2px solid currentColor;
+export const CheckboxWrapper = styled.div<{ isCompleted: boolean }>`
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #555;
   border-radius: 4px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  background-color: transparent;
-  color: #413F42;
+  background-color: ${({ isCompleted }) => (isCompleted ? '#042AE9' : 'transparent')};
+  border-color: ${({ isCompleted }) => (isCompleted ? '#042AE9' : '#555')};
+  transition: background-color 0.2s;
 `;
 
-export const Title = styled.h3<TaskCardContainerProps>`
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0.5rem 0;
-  color: #413F42;
-  transition: color 0.5s ease, opacity 0.5s ease;
-
+export const Title = styled.h3`
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: #1a1a1a;
+  padding-right: 30px; // Espaço para não sobrepor o ícone de opções
 `;
 
 export const Description = styled.p`
-  font-size: 1rem;
-  line-height: 1.5;
-  opacity: 0.9;
-  transition: color 0.5s ease, opacity 0.5s ease;
+  font-size: 14px;
+  color: #555;
+  margin: 0;
+  padding-bottom: 30px; // Espaço para não sobrepor o checkbox
+`;
+
+export const OptionsIcon = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
 `;

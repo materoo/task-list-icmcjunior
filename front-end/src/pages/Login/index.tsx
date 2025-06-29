@@ -1,67 +1,70 @@
-import FilledButton from '../../components/FilledButton';
-import Input from '../../components/Input';
-import { Wrapper, FormContainer, Title, RegisterText } from './style';
-import { Link, Navigate } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
-import React, { useState } from "react";
-import axios from "axios";
-import { useUser } from '../../contexts/UserContext'; 
+// src/pages/Login/index.tsx
+import React, { useState } from 'react';
+import { LogIn } from 'lucide-react'; // Ícone 'User' removido da importação
+import { Link, Navigate } from 'react-router-dom'; // 'useNavigate' removido da importação
 
+import Input from '../../components/Input';
+import FilledButton from '../../components/FilledButton';
+import { Wrapper, FormContainer, Title, RegisterText } from './style';
+import { useUser } from '../../contexts/UserContext';
+import axios from 'axios';
 
 const Login = () => {
-  const { setUser } = useUser(); 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { setUser } = useUser();
   const [redirect, setRedirect] = useState(false);
+  // A linha 'const navigate = useNavigate();' foi removida
+
+  const [login, setLogin] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if(email && password){
-      try{
-        const {data : userDoc } = await axios.post("/users/login", {
-          email,
-          password
-        });
-        
-        setUser(userDoc); 
-        setRedirect(true);
-      } catch (error: any) { 
-        const errorMessage = error.response?.data?.message || error.message || "Erro desconhecido ao logar.";
-        alert(`Erro ao logar: ${errorMessage}`);
-      }
-
-    }else{
-      alert("Por favor, insira Email e Senha.");
+    if (!login.trim() || !password.trim()) {
+      alert('Preencha todos os campos');
+      return;
     }
-    console.log(`Email enviado: ${email} Senha Enviada: ${password}`);
+
+    try {
+      const { data: userDoc } = await axios.post("/users/login", {
+        login,
+        password
+      });
+      setUser(userDoc);
+      setRedirect(true);
+    } catch (error) {
+      alert("Falha no login. Verifique suas credenciais.");
+      console.error(error);
+    }
   };
 
-  if(redirect) return <Navigate to="/home" />; // Redirect to home after successful login
-
+  if (redirect) return <Navigate to="/home" />;
+  
   return (
     <Wrapper>
       <FormContainer onSubmit={handleSubmit}>
         <Title>Login</Title>
+
         <Input
           label="Email ou CPF"
-          name="email"
+          name="login"
           type="text"
-          placeholder="Digite seu email"
-          value = {email}
-          onChange={(_, value) => setEmail(value)}
+          placeholder="Digite seu email ou CPF"
+          value={login}
+          onChange={(_name, value) => setLogin(value)}
         />
         <Input
           label="Senha"
           name="password"
           type="password"
           placeholder="Digite sua senha"
-          value={password} // Added value prop for controlled component
-          onChange={(_, value) => setPassword(value)}
+          value={password}
+          onChange={(_name, value) => setPassword(value)}
         />
-        <FilledButton label="Login" icon={<LogIn size={18}/>} type='submit' />
+        <FilledButton label="Entrar" icon={<LogIn size={18} />} type="submit" />
+        
         <RegisterText>
-          Não possui conta? <Link to="/register">Cadastre-se aqui!</Link>
+          Não tem uma conta? <Link to="/register">Cadastre-se</Link>
         </RegisterText>
       </FormContainer>
     </Wrapper>

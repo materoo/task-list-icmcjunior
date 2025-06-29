@@ -66,3 +66,13 @@ export const FilterItem = styled.li<{ isActive: boolean }>`
     stroke-width: 2.5px;
   }
 `;
+
+export const IconWrapper = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const FilterText = styled.span`
+  margin-left: 12px;
+`;
