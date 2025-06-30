@@ -5,41 +5,53 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const router = Router();
-const bcryptSalt = bcrypt.genSaltSync();
+const bcryptSalt = bcrypt.genSaltSync(10);
 const { JWT_SECRET_KEY } = process.env;
 
-// Rota para buscar todos os usuários (geralmente para fins de desenvolvimento/admin)
 router.get("/", async (req, res) => {
   connectDb();
   try {
     const userDoc = await User.find();
     res.json(userDoc);
   } catch (error) {
-    res.status(500).json(error);
+    console.error("Erro ao buscar todos os usuários:", error);
+    res.status(500).json("Erro ao buscar usuários.");
   }
 });
 
-// Rota para obter o perfil do usuário logado a partir do token no cookie
 router.get("/profile", async (req, res) => {
   const { token } = req.cookies;
   if (token) {
     try {
       const userInfo = jwt.verify(token, JWT_SECRET_KEY);
-      res.json(userInfo);
+
+      const mappedUserInfo = {
+        id: userInfo._id || userInfo.id || '', // Provide a fallback for id
+        name: userInfo.name,
+        cpf: userInfo.cpf,
+        email: userInfo.email,
+        dataNascimento: userInfo.birthdate || userInfo.dataNascimento || '', // Provide a fallback for date
+      };
+      res.json(mappedUserInfo);
     } catch (error) {
-      res.status(500).json(error);
+      console.error("Erro ao verificar token JWT ou buscar perfil:", error);
+      res.status(401).json("Token inválido ou expirado.");
     }
   } else {
     res.json(null);
   }
 });
 
-// Rota para cadastrar um novo usuário
 router.post("/", async (req, res) => {
   connectDb();
-  const { name, birthdate, cpf, email, password1 } = req.body;
-  const encryptedPassword = bcrypt.hashSync(password1, bcryptSalt);
+  const { name, birthdate, cpf, email, password } = req.body;
+
+  if (!password) {
+    return res.status(400).json("Senha é obrigatória.");
+  }
+
   try {
+    const encryptedPassword = bcrypt.hashSync(password, bcryptSalt);
     const newUserDoc = await User.create({
       name,
       birthdate,
@@ -48,34 +60,43 @@ router.post("/", async (req, res) => {
       password: encryptedPassword,
     });
     const { _id } = newUserDoc;
-    const newUserObj = { name, birthdate, cpf, email, _id };
+
+    const newUserObj = {
+      name,
+      birthdate: newUserDoc.birthdate,
+      cpf,
+      email,
+      _id
+    };
     const token = jwt.sign(newUserObj, JWT_SECRET_KEY);
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // Em produção, mude para true
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'Lax',
       maxAge: 3600000,
     }).json(newUserObj);
-  } catch (error) {
-    res.status(500).json(error);
+  } catch (error) { 
+    console.error("Erro ao cadastrar novo usuário:", error);
+    if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
+        return res.status(409).json("Email ou CPF já cadastrados.");
+    }
+    res.status(500).json("Erro interno do servidor ao cadastrar.");
   }
 });
 
-/**
- * Rota de login.
- * Conforme o requisito, permite o login com email ou CPF. 
- */
 router.post("/login", async (req, res) => {
   connectDb();
-  const { login, password } = req.body; // Campo "login" pode ser email ou CPF
+  const { login, password } = req.body;
 
   try {
-    // Procura o usuário pelo email ou pelo CPF
-    const userDoc = await User.findOne({ 
-      $or: [{ email: login }, { cpf: login }] 
+    const userDoc = await User.findOne({
+      $or: [{ email: login }, { cpf: login }]
     });
 
     if (userDoc) {
+      if (!userDoc.password) {
+        return res.status(500).json("Erro: Senha do usuário não encontrada no registro.");
+      }
       const passwordCorrect = bcrypt.compareSync(password, userDoc.password);
       const { name, _id, cpf, birthdate, email } = userDoc;
       if (passwordCorrect) {
@@ -83,7 +104,7 @@ router.post("/login", async (req, res) => {
         const token = jwt.sign(newUserObj, JWT_SECRET_KEY);
         res.cookie("token", token, {
           httpOnly: true,
-          secure: false, // Em produção, mude para true
+          secure: process.env.NODE_ENV === 'production',
           sameSite: 'Lax',
           maxAge: 3600000,
         }).json(newUserObj);
@@ -94,15 +115,16 @@ router.post("/login", async (req, res) => {
       res.status(400).json("Usuário não encontrado!");
     }
   } catch (error) {
-    res.status(500).json(error);
+    console.error("Erro no login:", error);
+    res.status(500).json("Erro interno do servidor durante o login.");
   }
 });
 
-// Rota para atualizar o perfil do usuário logado
 router.put("/:id", async (req, res) => {
   connectDb();
   const { id } = req.params;
   const { name, email, dataNascimento } = req.body;
+
   try {
     const updatedUser = await User.findByIdAndUpdate(
       id,
@@ -111,21 +133,25 @@ router.put("/:id", async (req, res) => {
         email,
         birthdate: dataNascimento,
       },
-      { new: true } // Retorna o documento atualizado
+      { new: true }
     );
 
     if (!updatedUser) {
       return res.status(404).json("Usuário não encontrado!");
     }
 
-    // Atualiza o token JWT com as novas informações
-    const { _id, cpf } = updatedUser;
-    const updatedUserObj = { name: updatedUser.name, email: updatedUser.email, _id, cpf, birthdate: updatedUser.birthdate };
+    const updatedUserObj = {
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      cpf: updatedUser.cpf,
+      email: updatedUser.email,
+      birthdate: updatedUser.birthdate
+    };
     const newToken = jwt.sign(updatedUserObj, JWT_SECRET_KEY);
 
     res.cookie("token", newToken, {
       httpOnly: true,
-      secure: false, // Em produção, mude para true
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'Lax',
       maxAge: 3600000,
     }).json(updatedUserObj);
@@ -136,7 +162,6 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// Rota para deletar a conta do usuário
 router.delete("/:id", async (req, res) => {
   connectDb();
   const { id } = req.params;
@@ -145,10 +170,10 @@ router.delete("/:id", async (req, res) => {
     if (result.deletedCount === 0) {
       return res.status(404).json("Usuário não encontrado!");
     }
-    // Limpa o cookie de token ao deletar a conta
-    res.cookie('token', '').json("Usuário deletado com sucesso!");
+    res.cookie('token', '', { expires: new Date(0) }).json("Usuário deletado com sucesso!");
   } catch (error) {
-    res.status(500).json(error);
+    console.error("Erro ao deletar a conta:", error);
+    res.status(500).json("Erro interno do servidor ao deletar a conta.");
   }
 });
 
